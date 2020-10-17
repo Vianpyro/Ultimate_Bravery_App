@@ -392,7 +392,7 @@ RUNES = [
         "Slot3": [
             "Option1: Bonus Health",
             "Option2: Bonus Armor",
-            "Option3: Bonus Magic"
+            "Option3: Bonus Magic Resistance"
         ]
     }
 ]
