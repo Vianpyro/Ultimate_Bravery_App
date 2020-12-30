@@ -11,11 +11,12 @@ class Scraper:
         This program obtains its data from Riot Games services.
         '''
         self.base_url               = 'https://ddragon.leagueoflegends.com'
+        self.region                 = 'en_US'
         self.patch                  = requests.get(f'{self.base_url}/api/versions.json').json()[0]
-        self.champions_json         = requests.get(f'{self.base_url}/cdn/{self.patch}/data/en_US/champion.json').json()
-        self.items_json             = requests.get(f'{self.base_url}/cdn/{self.patch}/data/en_US/item.json').json()
-        self.summoner_spells_json   = requests.get(f'{self.base_url}/cdn/{self.patch}/data/en_US/summoner.json').json()
-        self.runes_json             = requests.get(f'{self.base_url}/cdn/{self.patch}/data/en_US/runesReforged.json').json()
+        self.champions_json         = requests.get(f'{self.base_url}/cdn/{self.patch}/data/{self.region}/champion.json').json()
+        self.items_json             = requests.get(f'{self.base_url}/cdn/{self.patch}/data/{self.region}/item.json').json()
+        self.summoner_spells_json   = requests.get(f'{self.base_url}/cdn/{self.patch}/data/{self.region}/summoner.json').json()
+        self.runes_json             = requests.get(f'{self.base_url}/cdn/{self.patch}/data/{self.region}/runesReforged.json').json()
 
         self.champions              = [champion for champion in self.champions_json['data']]
         self.items                  = self.items_json['data']
@@ -55,10 +56,14 @@ class Scraper:
         print(self)
 
     def generate_pick(self):
+        # Champion <Aatrox:...:Zyra>
         champion    = self.champions[randint(0, len(self.champions) - 1)]
+
+        # Position <top:jungle:mid:adc:support>
         position    = self.positions[randint(0, len(self.positions) - 1)]
         mythic      = self.items[self.mythics[randint(0, len(self.mythics) - 1)]]['name']
 
+        # Runes <Electrocute:...:Aery>
         main_branch = randint(0, len(self.runes) - 1)
         secondary_branch = randint(0, len(self.runes) - 1)
         while secondary_branch == main_branch:
@@ -77,6 +82,7 @@ class Scraper:
             ]
         ]
 
+        # Spells <Q:W:E>
         spells      = 'QWE'[randint(0, 2)]
         for _ in range(2):
             l = 'QWE'[randint(0, 2)]
@@ -87,6 +93,8 @@ class Scraper:
             summoner_spells = [self.summoner_spells[randint(0, len(self.summoner_spells) - 1)], 'Smite']
         else:
             summoner_spells = [self.summoner_spells[randint(0, len(self.summoner_spells) - 1)] for _ in range(2)]
+        while summoner_spells[0] == summoner_spells[1]:
+            summoner_spells[1] = self.summoner_spells[randint(0, len(self.summoner_spells) - 1)]
 
         if champion == 'Cassiopeia':
             legendaries = [self.items[self.legendary[randint(0, len(self.legendary) - 1)]]['name'] for _ in range(6)]
@@ -104,6 +112,7 @@ class Scraper:
         RUNES:\t\t{runes}
         """
 
+        # Cassiopeia can not buy boots
         if champion != 'Cassiopeia': r += f'BOOTS:\t\t{boots}\n'
         return r
 
