@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
+
+import tkinter as tk
 from lxml import html
 from random import randint
 import requests, json
@@ -53,8 +55,6 @@ class Scraper:
             and self.items[e]['maps']['11']
         ]
 
-        print(self)
-
     def generate_pick(self):
         # Champion <Aatrox:...:Zyra>
         champion    = self.champions[randint(0, len(self.champions) - 1)]
@@ -97,28 +97,69 @@ class Scraper:
             summoner_spells[1] = self.summoner_spells[randint(0, len(self.summoner_spells) - 1)]
 
         if champion == 'Cassiopeia':
-            legendaries = [self.items[self.legendary[randint(0, len(self.legendary) - 1)]]['name'] for _ in range(6)]
-        else:
             legendaries = [self.items[self.legendary[randint(0, len(self.legendary) - 1)]]['name'] for _ in range(5)]
+        else:
+            legendaries = [self.items[self.legendary[randint(0, len(self.legendary) - 1)]]['name'] for _ in range(4)]
             boots       = self.items[self.boots[randint(0, len(self.boots) - 1)]]['name']
 
-        r = f"""
-        CHAMPION:\t{champion}
-        POSITION:\t{position}
-        MYTHIC:\t\t{mythic}
-        LEGENDARY:\t{legendaries}
-        SUMMONERS:\t{summoner_spells[0]}, {summoner_spells[1]}
-        SPELLS:\t\t{spells[0]} > {spells[1]} > {spells[2]}
-        RUNES:\t\t{runes}
-        """
-
-        # Cassiopeia can not buy boots
-        if champion != 'Cassiopeia': r += f'BOOTS:\t\t{boots}\n'
+        r = [
+            champion,
+            position,
+            mythic,
+            legendaries,
+            summoner_spells,
+            spells,
+            runes
+        ]
+        if champion != 'Cassiopeia':
+            r.append(boots)
         return r
 
-    def __str__(self):
-        return self.generate_pick()
+window = tk.Tk()
+window.title("Randomizer")
+window.geometry("365x325")
+
+#------ANSWER PULL-------------
+def random_display():
+    result = pick.generate_pick()
+    results_display = tk.Text(master=window, height=18, width=45)
+    results_display.grid(column=0, row=3)
+
+    # Champion
+    results_display.insert(tk.END, f'Champion:\t\t{result[0]}\n')
+
+    # Lane
+    results_display.insert(tk.END, f'Lane:\t\t{result[1]}\n')
+
+    # Mythic item
+    results_display.insert(tk.END, f'Mythic item:\t\t{result[2]}\n')
+
+    # Items
+    results_display.insert(tk.END, f'Legendary items:\n')
+    for item in result[3]:
+        results_display.insert(tk.END, f'\t- {item}\n')
+
+    # Summoner's spells
+    results_display.insert(tk.END, f'Summoner spells:\t{result[4][0]} + {result[4][1]}\n')
+
+    # Spells order
+    results_display.insert(tk.END, f'Spells order:\t\t{result[5][0]} > {result[5][1]} > {result[5][2]}\n')
+
+    # Runes
+    results_display.insert(tk.END, f'Runes:\n')
+    for rune in result[6][0]:
+        results_display.insert(tk.END, f'\t- {rune}\n')
+    results_display.insert(tk.END, f'\t+ {result[6][1][0]}\n\t+ {result[6][1][1]}\n')
+
+    # Boots
+    if len(result[3]) == 4:
+        results_display.insert(tk.END, f'Boots:\t\t{result[7]}')
+
+#-----BUTTON---------------
+
+
+button = tk.Button(text="Goodluck!", command=random_display)
+button.grid(column=0, row=1)
 
 pick = Scraper()
-while input("Re-roll? [y/n]: ")[0].lower() == 'y':
-    print(pick)
+window.mainloop()
