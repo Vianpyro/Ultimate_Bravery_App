@@ -11,13 +11,9 @@ window.geometry("365x325")
 pick = Scraper()
 
 
-def putSpace(input):
-    return ' '.join(re.findall('[A-Z][a-z]*', input))
+def putSpace(string):
+    return ' '.join(re.findall('[A-Z][a-z]*', string))
 
-# Driver program
-if __name__ == "__main__":
-    input = 'BruceWayneIsBatman'
-    putSpace(input)
 ######################
 # ANSWER PULL
 ######################
