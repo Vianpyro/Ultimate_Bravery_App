@@ -5,6 +5,7 @@ from lxml import html
 from random import randint
 import requests
 import json
+import os
 
 class Scraper:
     def __init__(self, region='en_US'):
@@ -12,10 +13,16 @@ class Scraper:
         Since League of Legends is developed by Riot Games
         This program obtains its data from Riot Games services.
         '''
-        self.base_url   = 'https://ddragon.leagueoflegends.com'
-        self.region     = region
+        self.base_url       = 'https://ddragon.leagueoflegends.com'
 
         try:
+            # Verify the region
+            if region in self.get_region():
+                self.region     = region
+            else:
+                self.region     = 'en_US'
+
+
             # Get the data online
             self.patch                  = self.get_patch()
             self.champions_json         = self.get_champions_json()
@@ -35,20 +42,36 @@ class Scraper:
         except:
             raise ValueError('Unable to load data!')
 
+        self.images_url = f'{self.base_url}/cdn/{self.patch}/img'    # /item/1001.png
+
+    def get_json_from_url(self, url):
+        return requests.get(f'{self.base_url}/{url}.json').json()
+
+    def download_image(self, url, image_name, directory='resources'):
+        response = requests.get(url)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        with open(f'{directory}/{image_name}', "wb") as f:                               # wb mode to open in write-and-binary mode
+            f.write(response.content)
+            f.close()
+
+    def get_region(self):
+        return self.get_json_from_url('cdn/languages')
+
     def get_patch(self):
-        return requests.get(f'{self.base_url}/api/versions.json').json()[0]
+        return self.get_json_from_url('api/versions')[0]
 
     def get_champions_json(self):
-        return requests.get(f'{self.base_url}/cdn/{self.patch}/data/{self.region}/champion.json').json()
+        return self.get_json_from_url(f'cdn/{self.patch}/data/{self.region}/champion')
 
     def get_items_json(self):
-        return requests.get(f'{self.base_url}/cdn/{self.patch}/data/{self.region}/item.json').json()
+        return self.get_json_from_url(f'cdn/{self.patch}/data/{self.region}/item')
 
     def get_summoner_spells_json(self):
-        return requests.get(f'{self.base_url}/cdn/{self.patch}/data/{self.region}/summoner.json').json()
+        return self.get_json_from_url(f'cdn/{self.patch}/data/{self.region}/summoner')
 
     def get_runes_json(self):
-        return requests.get(f'{self.base_url}/cdn/{self.patch}/data/{self.region}/runesReforged.json').json()
+        return self.get_json_from_url(f'cdn/{self.patch}/data/{self.region}/runesReforged')
 
     def load_champions(self):
         champions = [champion for champion in self.champions_json['data']]
@@ -161,7 +184,7 @@ class Scraper:
             boots = self.items[self.boots[randint(0, len(self.boots) - 1)]]['name']
 
         return [
-            champion, position, mythic, legendaries, summoner_spells, spells, runes, boots
-        ] if champion != 'Cassiopeia' else [
             champion, position, mythic, legendaries, summoner_spells, spells, runes
+        ] if champion == 'Cassiopeia' else [
+            champion, position, mythic, legendaries, summoner_spells, spells, runes, boots
         ]
